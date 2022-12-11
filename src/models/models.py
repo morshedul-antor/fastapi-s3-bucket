@@ -1,9 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text
-from db import Base
+from sqlalchemy import Column, String, Text
+from models import BaseModel
 
-# Define To Do class inheriting from Base
-class ToDo(Base):
-       __tablename__ = 'todo'
-       id = Column(Integer, primary_key=True)
+
+class ToDo(BaseModel):
+       __tablename__ = "todo"
        title = Column(String(255))
        task = Column(Text, nullable=True)
