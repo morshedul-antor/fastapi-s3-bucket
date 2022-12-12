@@ -8,7 +8,6 @@ from services import todo_service
 
 router = APIRouter()
 
-
 @router.get('/', response_model=List[TodoOut])
 def all_todo(skip: int = 0, limit: int = 10,  db: Session = Depends(get_db)):
     all = todo_service.get_with_pagination(db=db, skip=skip, limit=limit, descending=True)
