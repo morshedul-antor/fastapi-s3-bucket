@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from schemas import  TodoBase, TodoOut, TodoUpdate
+from schemas import  TodoIn, TodoOut, TodoUpdate
 from exceptions.service_result import handle_result
 from sqlalchemy.orm import Session
 from db import get_db
@@ -15,18 +15,18 @@ def all_todo(skip: int = 0, limit: int = 10,  db: Session = Depends(get_db)):
 
 
 @router.post('/', response_model=TodoOut)
-def create_todo(data_in: TodoBase, db: Session = Depends(get_db)):
+def create_todo(data_in: TodoIn, db: Session = Depends(get_db)):
     todo = todo_service.create_todo(db=db, data_in=data_in)
     return handle_result(todo)
 
 
 @router.put('/{id}', response_model=TodoOut)
-def update(id: int, todo_update: TodoUpdate, db: Session = Depends(get_db)):
+def update_todo(id: int, todo_update: TodoUpdate, db: Session = Depends(get_db)):
     update = todo_service.update(db, id, data_update=todo_update)
     return handle_result(update)
 
 
 @router.delete('/{id}')
-def delete(id: int, db: Session = Depends(get_db)):
+def delete_todo(id: int, db: Session = Depends(get_db)):
     delete = todo_service.delete(db, id=id)
     return handle_result(delete)
