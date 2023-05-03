@@ -10,7 +10,7 @@ from exceptions import AppExceptionCase, AppException, app_exception_handler, ge
 import api.v1.routes
 from db import settings
 
-app = FastAPI(title='FastAPI Boilerplate')
+app = FastAPI(title='FastAPI Image')
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,11 +56,11 @@ def custom_generic_exception_handler(request: Request, exc: Exception):
 # Root API
 @app.get("/")
 async def root():
-       return {"message": "CRUD Application FastAPI"}
+       return {"message": "FastAPI Image"}
 
 
 app.include_router(api.v1.routes.api_router, prefix=settings.API_V1_STR)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.2", port=8000, reload=True, log_level="info")
+    uvicorn.run("main:app", host="127.0.0.3", port=8000, reload=True, log_level="info")
