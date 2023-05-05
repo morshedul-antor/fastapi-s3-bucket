@@ -3,4 +3,5 @@ uvicorn==0.17.6
 sqlalchemy==1.4.34
 alembic==1.7.7
 python-dotenv==0.19.2
+python-multipart==0.0.5
 mysql-connector-python==8.0.28
