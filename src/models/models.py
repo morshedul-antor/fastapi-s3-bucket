@@ -13,4 +13,11 @@ class Image(BaseModel):
     service_name = Column(String(255), nullable=True)
     image_string = Column(String(255), nullable=True)
     todo_id = Column(Integer, ForeignKey("todo.id"))
+
+
+class Picture(BaseModel):
+    __tablename__ = "Pictures"
+    service_name = Column(String(255), nullable=True)
+    image_string = Column(String(255), nullable=True)
+    todo_id = Column(Integer, ForeignKey("todo.id"))
     

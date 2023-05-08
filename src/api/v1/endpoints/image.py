@@ -11,6 +11,6 @@ router = APIRouter()
 
 
 @router.post('/', response_model=ImageOut)
-def add_image(file: Optional[UploadFile] = File(None), image_data: TodoIn = Depends(),  db: Session = Depends(get_db)):
-    create  = image_service.add_image(db=db, file=file, data_in=image_data)
+def add_image(logo: Optional[UploadFile] = File(None), banner: Optional[UploadFile] = File(None), image_data: TodoIn = Depends(),  db: Session = Depends(get_db)):
+    create  = image_service.add_image(db=db, logo=logo, banner=banner, data_in=image_data)
     return handle_result(create)

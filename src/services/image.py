@@ -1,4 +1,4 @@
-from schemas import ImageIn, ImageUpdate, TodoIn
+from schemas import ImageIn, ImageUpdate, TodoIn, PictureIn
 from repositories import image_repo
 from models import Image
 from services import BaseService, CreateSchemaType, todo_service
@@ -9,14 +9,7 @@ from exceptions import ServiceResult, AppException, handle_result
 
 class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
    
-    def add_image(self, file: str, db: Session, data_in: CreateSchemaType):
-
-        up_img = UploadFileUtils(file=file)
-
-        # prefix is the short service name
-        image_name = up_img.upload_image(
-            prefix='logo', path='./assets/img/profile', accepted_extensions=['jpg', 'jpeg', 'png'])
-        
+    def add_image(self, logo: str, banner: str, db: Session, data_in: CreateSchemaType):
 
         todo_data = TodoIn(
             title=data_in.title,
@@ -25,23 +18,50 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
 
         create_todo = todo_service.create_with_flush(
             db, data_in=todo_data)
+        
+
+        # image
+        logo_img = UploadFileUtils(file=logo)
+
+        # prefix is the short service name
+        logo_name = logo_img.upload_image(
+            prefix='logo', path='./assets/img/logo', accepted_extensions=['jpg', 'jpeg', 'png'])
 
 
-        image_data = ImageIn(
+        logo_data = ImageIn(
             todo_id=handle_result(create_todo).id,
             service_name='logo', 
-            image_string=image_name
+            image_string=logo_name
         )
 
-        add_image = image_service.create(
-            db, data_in=image_data)
+        add_logo = image_service.create_with_flush(
+            db, data_in=logo_data)
+        
+
+        # image
+        banner_img = UploadFileUtils(file=banner)
+
+        # prefix is the short service name
+        banner_name = banner_img.upload_image(
+            prefix='banner', path='./assets/img/banner', accepted_extensions=['jpg', 'jpeg', 'png'])
 
 
-        if not add_image:
+        banner_data = PictureIn(
+            todo_id=handle_result(create_todo).id,
+            service_name='banner', 
+            image_string=banner_name
+        )
+
+        add_banner = image_service.create(
+            db, data_in=banner_data)
+        
+
+
+        if not add_banner:
             return ServiceResult(AppException.ServerError(
                 "Problem with image upload!"))
         else:
-            return add_image
+            return add_banner
 
 
 image_service = ImageService(Image, image_repo)
