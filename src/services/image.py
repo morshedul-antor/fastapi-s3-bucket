@@ -8,7 +8,7 @@ from exceptions import ServiceResult, AppException, handle_result
 
 
 class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
-   
+
     def add_image(self, logo: str, banner: str, db: Session, data_in: CreateSchemaType):
 
         todo_data = TodoIn(
@@ -18,7 +18,6 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
 
         create_todo = todo_service.create_with_flush(
             db, data_in=todo_data)
-        
 
         # image
         logo_img = UploadFileUtils(file=logo)
@@ -27,16 +26,14 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
         logo_name = logo_img.upload_image(
             prefix='logo', path='./assets/img/logo', accepted_extensions=['jpg', 'jpeg', 'png'])
 
-
         logo_data = ImageIn(
             todo_id=handle_result(create_todo).id,
-            service_name='logo', 
+            service_name='logo',
             image_string=logo_name
         )
 
         add_logo = image_service.create_with_flush(
             db, data_in=logo_data)
-        
 
         # image
         banner_img = UploadFileUtils(file=banner)
@@ -45,17 +42,14 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
         banner_name = banner_img.upload_image(
             prefix='banner', path='./assets/img/banner', accepted_extensions=['jpg', 'jpeg', 'png'])
 
-
         banner_data = PictureIn(
             todo_id=handle_result(create_todo).id,
-            service_name='banner', 
+            service_name='banner',
             image_string=banner_name
         )
 
         add_banner = image_service.create(
             db, data_in=banner_data)
-        
-
 
         if not add_banner:
             return ServiceResult(AppException.ServerError(
