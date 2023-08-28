@@ -5,3 +5,4 @@ alembic==1.7.7
 python-dotenv==0.19.2
 python-multipart==0.0.5
 mysql-connector-python==8.0.28
+boto3==1.28.30
