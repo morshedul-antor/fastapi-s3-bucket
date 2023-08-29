@@ -5,6 +5,10 @@ from typing import Optional
 class ImageBase(BaseModel):
     service_name: Optional[str] = None
     image_string: Optional[str] = None
+    bucket_string: Optional[str] = None
+    bucket_folder: Optional[str] = None
+    image_url: Optional[str] = None
+    bucket: Optional[bool] = None
 
 
 class ImageIn(ImageBase):

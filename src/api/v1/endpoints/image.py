@@ -4,18 +4,20 @@ from services import image_service
 from db import get_db, settings
 from exceptions import handle_result
 from sqlalchemy.orm import Session
-from typing import Optional
-
-import uuid
-import boto3
-from io import BytesIO
+from typing import Optional, List
 
 
 router = APIRouter()
 
 
+@router.get('/s3/', response_model=List[ImageOut])
+def all_s3_bucket_images(db: Session = Depends(get_db)):
+    data = image_service.get(db=db)
+    return handle_result(data)
+
+
 @router.post('/s3')
-async def add_image_in_s3_bucket(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def add_image_in_s3_bucket(file: Optional[UploadFile] = File(None), db: Session = Depends(get_db)):
     data = await image_service.add_image_bucket(db=db, file=file)
     return data
 

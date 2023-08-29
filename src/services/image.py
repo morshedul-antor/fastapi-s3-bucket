@@ -1,12 +1,12 @@
-from schemas import ImageIn, ImageUpdate, TodoIn, PictureIn
-from repositories import image_repo
-from models import Image
 from services import BaseService, CreateSchemaType, todo_service
+from schemas import ImageIn, ImageUpdate, TodoIn, PictureIn
+from exceptions import ServiceResult, AppException, handle_result
+from fastapi import HTTPException, UploadFile
+from repositories import image_repo
 from sqlalchemy.orm import Session
 from utils import UploadFileUtils
-from exceptions import ServiceResult, AppException, handle_result
+from models import Image
 from db import settings
-from fastapi import HTTPException, UploadFile
 
 import uuid
 import boto3
@@ -65,28 +65,62 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
 
 # **************** S3 Bucket ****************** #
     async def add_image_bucket(self, db: Session, file: UploadFile):
-        identifier = str(uuid.uuid4())
+        object_key = 'static-assests/ed237519-86e6-4de6-8c00-29bea5d291dc_logo.png'
 
-        file_name = f"{identifier}_{file.filename}"
-        folder = f"static-assests/{file_name}"
+        if file:
+            identifier = str(uuid.uuid4())
+            file_name = f"{identifier}_{file.filename}"
+            folder = f"logo/{file_name}"
 
-        s3_client = boto3.client(
-            's3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_KEY)
+            s3_client = boto3.client(
+                's3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_KEY)
 
-        try:
-            content = await file.read()
-            s3_client.put_object(
-                Bucket=settings.BUCKET_NAME,
-                Key=folder,
-                Body=BytesIO(content)
+            try:
+                # delete previous image
+                s3_client.delete_object(
+                    Bucket=settings.BUCKET_NAME,
+                    Key=object_key
+                )
+
+                content = await file.read()
+                s3_client.put_object(
+                    Bucket=settings.BUCKET_NAME,
+                    Key=folder,
+                    Body=BytesIO(content)
+                )
+
+                url = f"https://s3.{settings.BUCKET_REGION}.amazonaws.com/{settings.BUCKET_NAME}/{folder}"
+
+                logo_data = ImageIn(
+                    todo_id=1,
+                    service_name='logo',
+                    bucket_string=file_name,
+                    bucket_folder='logo',
+                    image_url=url,
+                    bucket=True,
+                )
+
+                add_logo = image_service.create(
+                    db, data_in=logo_data)
+
+                if add_logo:
+                    return {"status": "success", "img_url": url, "img_delete": object_key}
+
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail="Internal Server Error")
+        else:
+            logo_data = ImageIn(
+                todo_id=1,
+                service_name='logo',
+                bucket=False,
             )
-            url = f"https://s3.{settings.BUCKET_REGION}.amazonaws.com/{settings.BUCKET_NAME}/{folder}"
 
-            return {"status": "success", 'img_url': url}
+            add_logo = image_service.create(
+                db, data_in=logo_data)
 
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail="Internal Server Error")
+            if add_logo:
+                return {"status": "success", "message": 'DB in without image!'}
 
     async def delete_image_bucket(self, db: Session, folder: str, file_name: str):
         s3_client = boto3.client(
