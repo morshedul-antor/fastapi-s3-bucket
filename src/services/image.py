@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from utils import UploadFileUtils
 from exceptions import ServiceResult, AppException, handle_result
 from db import settings
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 
 import uuid
 import boto3
@@ -64,7 +64,7 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
             return add_banner
 
 # **************** S3 Bucket ****************** #
-    async def add_image_bucket(db: Session, file: str):
+    async def add_image_bucket(self, db: Session, file: UploadFile):
         identifier = str(uuid.uuid4())
 
         file_name = f"{identifier}_{file.filename}"
@@ -84,6 +84,23 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
 
             return {"status": "success", 'img_url': url}
 
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail="Internal Server Error")
+
+    async def delete_image_bucket(self, db: Session, folder: str, file_name: str):
+        s3_client = boto3.client(
+            's3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_KEY)
+
+        try:
+            object_key = f"{folder}/{file_name}"
+
+            s3_client.delete_object(
+                Bucket=settings.BUCKET_NAME,
+                Key=object_key
+            )
+
+            return {"status": "success", "message": f"Object '{object_key}' deleted successfully."}
         except Exception as e:
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
