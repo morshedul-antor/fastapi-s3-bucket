@@ -5,6 +5,12 @@ from services import BaseService, CreateSchemaType, todo_service
 from sqlalchemy.orm import Session
 from utils import UploadFileUtils
 from exceptions import ServiceResult, AppException, handle_result
+from db import settings
+from fastapi import HTTPException
+
+import uuid
+import boto3
+from io import BytesIO
 
 
 class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
@@ -56,6 +62,31 @@ class ImageService  (BaseService[Image, ImageIn, ImageUpdate]):
                 "Problem with image upload!"))
         else:
             return add_banner
+
+# **************** S3 Bucket ****************** #
+    async def add_image_bucket(db: Session, file: str):
+        identifier = str(uuid.uuid4())
+
+        file_name = f"{identifier}_{file.filename}"
+        folder = f"static-assests/{file_name}"
+
+        s3_client = boto3.client(
+            's3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_KEY)
+
+        try:
+            content = await file.read()
+            s3_client.put_object(
+                Bucket=settings.BUCKET_NAME,
+                Key=folder,
+                Body=BytesIO(content)
+            )
+            url = f"https://s3.{settings.BUCKET_REGION}.amazonaws.com/{settings.BUCKET_NAME}/{folder}"
+
+            return {"status": "success", 'img_url': url}
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail="Internal Server Error")
 
 
 image_service = ImageService(Image, image_repo)
